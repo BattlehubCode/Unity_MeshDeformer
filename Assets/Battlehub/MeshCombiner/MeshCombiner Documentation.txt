@@ -1,0 +1,81 @@
+﻿----------------------------------------------------------------------
+MeshCombiner scripts is located in Assets\Battlehub\MeshCombiner\Scripts folder
+MeshCombiner editor script is located in Assets\Battlehub\MeshCombiner\Editor\MeshCombinerMenu.cs file
+Demo scene is located in Assets\Battlehub\MeshCombiner\Demo.unity file
+
+----------------------------------------------------------------------
+Description
+MeshCombiner's main purpose is to combine meshes of arbitrarily transformed objects
+and edit pivot point of combined mesh.
+
+----------------------------------------------------------------------
+Package contents:
+4 Scripts
+1 Prefab
+1 Demo Scene
+
+----------------------------------------------------------------------
+MeshUtils
+static class in Battlehub.MeshCombiner 
+
+Description
+MeshUtils class implements main functionality of a package (mesh combining and pivot editing)
+
+Static Functions
+1) public static Mesh EditPivot(Mesh mesh, Vector3 offset)
+   Description:
+	Move mesh pivot using offset. 
+   Parameters:
+	mesh - original mesh
+	offset - offset in mesh's local coordinate system
+   Return Value:
+	mesh with modified pivot
+
+2) public static void EditPivot(Transform transform, Vector3 worldOffset, MeshCollider collider = null)
+   Description:
+	Modify pivot point of object's mesh and collider's mesh using worldOffset
+   Parameters:
+	transform - transform of the gameObject with mesh
+	worldOffset - offset in world coordinate system
+   Optional Parameters:
+	collider - MeshCollider of gameObject
+
+3) public static void Combine(GameObject[] gameObjects, GameObject target = null)
+   Description:
+	Combine meshes of gameobject
+   Parameters:
+	gameObjects - array of GameObjects to combine
+   Optional Prameters:
+	target - target GameObject. 
+	Combine method will assign combined mesh to this game object. 
+	If not specified then first object from game objects array will be used as a target
+
+----------------------------------------------------------------------
+PivotEditor 
+class in Battlehub.MeshCombiner / Inherits from : MonoBehaviour 
+
+Description
+Implements functionality that allows you to edit pivot point in editor window
+
+----------------------------------------------------------------------
+Pivot
+class in Battlehub.MeshCombiner / Inherits from : MonoBehaviour
+
+Description
+Instantiates PivotEditor if Application.isEditor && !Application.isPlaying and destroys in opposite case
+
+----------------------------------------------------------------------
+MeshCombinerMenu
+class in Battlehub.MeshCombiner
+
+Description
+Contains implementation of commands accessible from Tools/MeshCombiner/ menu
+
+List of commands:
+   Combine
+   EditPivot
+   SaveMesh
+
+-------------------------------------------------------------------
+For additional step by step short video tutorial visit: https://www.youtube.com/watch?v=n6jBt449zY4
+If you have any questions regarding MeshCombiner editor extension please feel free to contact Vadim.Andriyanov@outlook.com
