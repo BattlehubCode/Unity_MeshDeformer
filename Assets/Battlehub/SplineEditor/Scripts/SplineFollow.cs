@@ -16,11 +16,21 @@ namespace Battlehub.SplineEditor
         private bool m_isRunning;
         private bool m_isCompleted;
 
+        public float T
+        {
+            get { return m_t; }
+        }
+
+        public SplineBase GetSpline
+        {
+            get { return m_spline; }
+        }
+
         private float m_t;
 
         private void Start()
         {
-            if(!Spline)
+            if (!Spline)
             {
                 Debug.LogError("Set Spline Field!");
                 enabled = false;
@@ -31,20 +41,20 @@ namespace Battlehub.SplineEditor
 
         private void FixedUpdate()
         {
-            if(IsRunning != m_isRunning)
+            if (IsRunning != m_isRunning)
             {
-                if(m_isCompleted)
+                if (m_isCompleted)
                 {
                     Restart();
                 }
                 m_isRunning = IsRunning;
             }
 
-            if(IsRunning)
+            if (IsRunning)
             {
                 Move();
             }
-            
+
         }
 
         private void Restart()
@@ -62,16 +72,23 @@ namespace Battlehub.SplineEditor
 
             float v = m_spline.GetVelocity(t).magnitude;
             v *= m_spline.CurveCount;
-            if (m_t >= 1.0f)
+            if (m_t >= 1.0f || m_t < 0)
             {
-                m_t = (m_t - 1.0f) + (Time.deltaTime * Speed) / v;
+                if (Speed >= 0)
+                {
+                    m_t = (m_t - 1.0f) + (Time.deltaTime * Speed) / v;
+                }
+                else
+                {
+                    m_t = (m_t + 1.0f) + (Time.deltaTime * Speed) / v;
+                }
+
                 if (!m_spline.Loop && !IsLoop)
                 {
-                    m_t = 1.0f;
+                    m_t = Speed >= 0 ? 1.0f : 0.0f;
                     m_isCompleted = true;
                     IsRunning = false;
                     m_isRunning = false;
-                    //Completed.Invoke();
                 }
 
                 if (IsLoop)

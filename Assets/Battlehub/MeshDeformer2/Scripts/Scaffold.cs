@@ -61,23 +61,30 @@ namespace Battlehub.MeshDeformer2
         [SerializeField]
         [HideInInspector]
         private Mesh altMesh;
-        public Mesh AltMesh {
-            get {
+        public Mesh AltMesh
+        {
+            get
+            {
                 return altMesh;
             }
-            set {
+            set
+            {
                 altMesh = value;
                 m_mesh = altMesh;
-                // m_deformer.WrapAndDeform(ScaffoldWrapper, value);
             }
         }
 
         //This is the original, undeformed Mesh the Scaffold is using
         //Warning: It may be inverted
-        public Mesh SourceMesh {
-            get {
+        public Mesh SourceMesh
+        {
+            get
+            {
                 if (AltMesh != null)
+                {
                     return AltMesh;
+                }
+                    
                 return Deformer.Original;
             }
         }
