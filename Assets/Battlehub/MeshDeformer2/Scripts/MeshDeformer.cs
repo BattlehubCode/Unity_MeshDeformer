@@ -59,6 +59,15 @@ namespace Battlehub.MeshDeformer2
         private MeshFilter m_filter;
         private MeshCollider m_collider;
 
+        [SerializeField]
+        private float m_normalsSmoothAngle = 0;
+
+        public float NormalsSmoothAngle
+        {
+            get { return m_normalsSmoothAngle; }
+            set { m_normalsSmoothAngle = value; }
+        }
+
         public Axis Axis
         {
             get { return m_axis; }

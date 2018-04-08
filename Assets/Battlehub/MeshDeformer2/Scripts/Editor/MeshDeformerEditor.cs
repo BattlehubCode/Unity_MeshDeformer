@@ -139,6 +139,17 @@ namespace Battlehub.MeshDeformer2
                 m_deformer.Loop = loop;
             }
 
+            EditorGUI.BeginChangeCheck();
+            float normalsSmoothAngle = EditorGUILayout.FloatField("Normals Smooth Angle", m_deformer.NormalsSmoothAngle);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(m_deformer, "Battlehub.MeshDeformer.NormalsSmoothAngle Changed");
+                RecordScaffolds(m_deformer, "Battlehub.MeshDeformer.NormalsSmoothAngle Changed");
+                EditorUtility.SetDirty(m_deformer);
+                m_deformer.NormalsSmoothAngle = normalsSmoothAngle;
+                m_deformer.Internal_HasChanged = true;
+                MeshDeformerMenu.RecalculateNormals(m_deformer);
+            }
 
             GUILayout.BeginHorizontal();
             {

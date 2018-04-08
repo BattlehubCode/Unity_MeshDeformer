@@ -322,6 +322,7 @@
     <Compile Include="Assets\Battlehub\MeshDeformer2\Scripts\Scaffold.cs" />
     <Compile Include="Assets\Battlehub\MeshDeformer2\Scripts\ScaffoldWrapper.cs" />
     <Compile Include="Assets\Battlehub\MeshEditor\Scripts\DrawNormals.cs" />
+    <Compile Include="Assets\Battlehub\MeshEditor\Scripts\NormalsSolver.cs" />
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\MeshUtils.cs" />
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\Pivot.cs" />
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\PivotDesignTime.cs" />

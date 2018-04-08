@@ -84,21 +84,23 @@ namespace Battlehub.MeshDeformer2
                 {
                     return AltMesh;
                 }
-                    
+
                 return Deformer.Original;
             }
         }
 
-        ScaffoldWrapper wrapper;
-        public ScaffoldWrapper ScaffoldWrapper {
-            get {
-                if (wrapper == null) {
+        private ScaffoldWrapper wrapper;
+        public ScaffoldWrapper ScaffoldWrapper
+        {
+            get
+            {
+                if (wrapper == null)
+                {
                     wrapper = MeshDeformer.Scaffolds.Where(s => s.Obj == this).FirstOrDefault();
                 }
                 return wrapper;
             }
         }
-
 
         [SerializeField]
         [HideInInspector]
@@ -109,7 +111,6 @@ namespace Battlehub.MeshDeformer2
         private Slice[] m_colliderSlices;
 
         [SerializeField]
-       // [HideInInspector]
         private Mesh m_mesh;
         public Mesh Mesh
         {
@@ -135,9 +136,12 @@ namespace Battlehub.MeshDeformer2
         [SerializeField]
         [HideInInspector]
         private MeshDeformer m_deformer;
-        MeshDeformer MeshDeformer {
-            get {
-                if (m_deformer == null) {
+        MeshDeformer MeshDeformer
+        {
+            get
+            {
+                if (m_deformer == null)
+                {
                     m_deformer = GetComponentInParent<MeshDeformer>();
                 }
                 return m_deformer;
@@ -166,14 +170,11 @@ namespace Battlehub.MeshDeformer2
         [HideInInspector]
         private MeshCollider m_collider;
 
-        
-
-
         private void Awake()
         {
-         
 
-            if(!m_initialized)
+
+            if (!m_initialized)
             {
                 m_instanceId = GetInstanceID();
                 m_initialized = true;
@@ -185,17 +186,17 @@ namespace Battlehub.MeshDeformer2
 
         private void Start()
         {
-            if(m_deformer == null)
+            if (m_deformer == null)
             {
                 m_deformer = GetComponentInParent<MeshDeformer>();
             }
 
 #if UNITY_EDITOR
-    
+
             //Something strange happening when removing MeshDeformerExt obj and then pressing CTRL+Z. (Can't deform recovered object)
             //And now I am unable to find good solution.
             //This needed to fix this behavior...
-            ScaffoldWrapper wrapper = m_deformer.Scaffolds.Where( s => s.ObjInstanceId == InstanceId).FirstOrDefault();
+            ScaffoldWrapper wrapper = m_deformer.Scaffolds.Where(s => s.ObjInstanceId == InstanceId).FirstOrDefault();
             if (wrapper != null)
             {
                 wrapper.Obj = this;
@@ -205,7 +206,7 @@ namespace Battlehub.MeshDeformer2
 
         public void Shift(int delta)
         {
-            for(int s = 0; s < m_slices.Length; ++s)
+            for (int s = 0; s < m_slices.Length; ++s)
             {
                 Slice slice = m_slices[s];
                 slice.CurveIndex += delta;
@@ -217,24 +218,24 @@ namespace Battlehub.MeshDeformer2
 
         public void DuplicateMeshes()
         {
-            if(m_mesh != null)
+            if (m_mesh != null)
             {
                 m_mesh = Instantiate(m_mesh);
                 MeshFilter filter = GetComponent<MeshFilter>();
-                if(filter != null)
+                if (filter != null)
                 {
                     filter.sharedMesh = m_mesh;
                 }
             }
 
-            if(m_colliderMesh != null)
+            if (m_colliderMesh != null)
             {
                 m_colliderMesh = Instantiate(m_colliderMesh);
                 if (m_collider != null)
                 {
                     m_collider.sharedMesh = m_colliderMesh;
                 }
-            }   
+            }
         }
 
         public void Wrap(Mesh mesh, Mesh colliderMesh, Axis axis, int[] curveIndices, int sliceCount)
@@ -282,7 +283,7 @@ namespace Battlehub.MeshDeformer2
             m_mesh = mesh;
             m_slices = CreateSlices(m_mesh, boundsFrom, boundsTo, axis, curveIndices, sliceCount);
 
-            if(colliderMesh == null)
+            if (colliderMesh == null)
             {
                 m_colliderMesh = null;
                 m_colliderSlices = new Slice[curveIndices.Length * (sliceCount + 1)];
@@ -363,20 +364,34 @@ namespace Battlehub.MeshDeformer2
 
         public void RecalculateNormals()
         {
-            if(m_mesh != null)
+            if (m_mesh != null)
             {
-                m_mesh.RecalculateNormals();
+                if (m_deformer == null || m_deformer.NormalsSmoothAngle == 0)
+                {
+                    m_mesh.RecalculateNormals();
+                }
+                else
+                {
+                    m_mesh.RecalculateNormals(m_deformer.NormalsSmoothAngle);
+                }
             }
 
             if (m_colliderMesh != null && m_collider != null)
             {
-                m_colliderMesh.RecalculateNormals();
+                if (m_deformer == null || m_deformer.NormalsSmoothAngle == 0)
+                {
+                    m_colliderMesh.RecalculateNormals();
+                }
+                else
+                {
+                    m_colliderMesh.RecalculateNormals(m_deformer.NormalsSmoothAngle);
+                }
                 m_collider.sharedMesh = null;
                 m_collider.sharedMesh = m_colliderMesh;
             }
         }
 
-        public void Deform(MeshDeformer deformer, Mesh original, Mesh colliderOriginal,  bool isRigid)
+        public void Deform(MeshDeformer deformer, Mesh original, Mesh colliderOriginal, bool isRigid)
         {
             if (original != null)
             {
@@ -386,7 +401,7 @@ namespace Battlehub.MeshDeformer2
                 m_mesh.RecalculateBounds();
             }
 
-            if(colliderOriginal != null && m_collider != null)
+            if (colliderOriginal != null && m_collider != null)
             {
                 m_colliderMesh.vertices = Deform(m_colliderSlices, colliderOriginal, deformer, isRigid);
                 m_colliderMesh.RecalculateBounds();
@@ -402,7 +417,7 @@ namespace Battlehub.MeshDeformer2
             {
                 Slice slice = slices[s];
 
-                Vector3 center =  deformer.GetPoint(slice.T, slice.CurveIndex);
+                Vector3 center = deformer.GetPoint(slice.T, slice.CurveIndex);
                 center = deformer.transform.InverseTransformPoint(center);
 
                 Vector3 dir = deformer.transform.InverseTransformVector(deformer.GetDirection(slice.T, slice.CurveIndex));
@@ -447,19 +462,158 @@ namespace Battlehub.MeshDeformer2
 
             Mesh prevMesh = null;
             Mesh nextMesh = null;
-            if(prev != null)
+            if (prev != null)
             {
                 prevMesh = prev.m_mesh;
             }
 
-            if(next != null)
+            if (next != null)
+            {
+                nextMesh = next.m_mesh;
+            }
+            SlerpContacts(deformer, m_mesh, deformer.Contacts, prev, prevMesh, next, nextMesh);
+
+
+            if (colliderOriginal == null)
+            {
+                return;
+            }
+            if (prev != null)
+            {
+                prevMesh = prev.m_colliderMesh;
+            }
+
+            if (next != null)
+            {
+                nextMesh = next.m_colliderMesh;
+            }
+            SlerpContacts(deformer, m_colliderMesh, deformer.ColliderContacts, prev, prevMesh, next, nextMesh);
+
+            if (m_collider != null)
+            {
+                m_collider.sharedMesh = null;
+                m_collider.sharedMesh = m_colliderMesh;
+            }
+        }
+
+        private void SlerpContacts(MeshDeformer deformer, Mesh mesh, Contact[] contacts, Scaffold prev, Mesh prevMesh, Scaffold next, Mesh nextMesh)
+        {
+            Vector3[] normals = null;
+            Vector3[] prevNormals = null;
+            Vector3[] nextNormals = null;
+            if (mesh == null)
+            {
+                return;
+            }
+
+            if (prev != null || next != null)
+            {
+                normals = mesh.normals;
+            }
+
+            if (prevMesh != null && prev != null && (prev != this || m_deformer.Scaffolds.Length == 1 && m_deformer.Loop))
+            {
+                prevNormals = prevMesh.normals;
+                for (int i = 0; i < contacts.Length; ++i)
+                {
+                    Contact contact = contacts[i];
+                    Vector3 prevNormal = prevNormals[contact.Index2];
+                    Vector3 normal = normals[contact.Index1];
+                    Vector3 slerped = Vector3.Slerp(prevNormal, normal, 0.5f);
+                    prevNormals[contact.Index2] = slerped;
+                    normals[contact.Index1] = slerped;
+                }
+            }
+
+            if (nextMesh != null && next != null && (next != this || m_deformer.Scaffolds.Length == 1 && m_deformer.Loop))
+            {
+
+                nextNormals = nextMesh.normals;
+                for (int i = 0; i < contacts.Length; ++i)
+                {
+                    Contact contact = contacts[i];
+                    Vector3 normal = normals[contact.Index2];
+                    Vector3 nextNormal = nextNormals[contact.Index1];
+                    Vector3 slerped = Vector3.Slerp(normal, nextNormal, 0.5f);
+
+                    normals[contact.Index2] = slerped;
+                    nextNormals[contact.Index1] = slerped;
+                }
+            }
+
+            if (prev != null)
+            {
+                if (mesh != null)
+                {
+                    mesh.normals = normals;
+                }
+
+                if (this != prev)
+                {
+                    if (prevMesh != null)
+                    {
+                        prevMesh.normals = prevNormals;
+                    }
+
+                }
+
+                if (next != null && next != prev)
+                {
+                    if (nextMesh != null)
+                    {
+                        nextMesh.normals = nextNormals;
+                    }
+                }
+            }
+            else if (next != null)
+            {
+                if (mesh != null)
+                {
+                    mesh.normals = normals;
+                }
+
+                if (prev != null && prev != next)
+                {
+                    if (prevMesh != null)
+                    {
+                        prevMesh.normals = prevNormals;
+                    }
+                }
+
+                if (this != next)
+                {
+                    if (nextMesh != null)
+                    {
+                        nextMesh.normals = nextNormals;
+                    }
+                }
+            }
+        }
+
+
+        /*
+        public void SlerpContacts(MeshDeformer deformer, Mesh original, Mesh colliderOriginal, Scaffold prev, Scaffold next, bool isRigid)
+        {
+            if (isRigid)
+            {
+                return;
+            }
+
+            Mesh prevMesh = null;
+            Mesh nextMesh = null;
+            if (prev != null)
+            {
+                prevMesh = prev.m_mesh;
+            }
+
+            if (next != null)
             {
                 nextMesh = next.m_mesh;
             }
             SlerpContacts(deformer, m_mesh, GetContacts(deformer), prev, prevMesh, next, nextMesh);
 
 
-            if(colliderOriginal == null)
+            if (colliderOriginal == null)
             {
                 return;
             }
@@ -475,12 +629,13 @@ namespace Battlehub.MeshDeformer2
             //implement this if you want a collider
             //SlerpContacts(deformer, m_colliderMesh, deformer.ColliderContacts, prev, prevMesh, next, nextMesh);
 
-            if(m_collider != null)
+            if (m_collider != null)
             {
                 m_collider.sharedMesh = null;
                 m_collider.sharedMesh = m_colliderMesh;
             }
         }
+
 
         private void SlerpContacts(MeshDeformer deformer, Mesh mesh, Contact[] contacts, Scaffold prev, Mesh prevMesh, Scaffold next, Mesh nextMesh)
         {
@@ -488,7 +643,10 @@ namespace Battlehub.MeshDeformer2
             Vector3[] prevNormals = null;
             Vector3[] nextNormals = null;
             if (AltMesh != null)
+            {
                 mesh = AltMesh;
+            }
+                
             if (mesh == null)
             {
                 return;
@@ -503,7 +661,8 @@ namespace Battlehub.MeshDeformer2
             {
                 prevNormals = prevMesh.normals;
                 Contact[] prevContacts = prev.GetContacts(deformer);
-                if (prevContacts.Length == contacts.Length) {
+                if (prevContacts.Length == contacts.Length)
+                {
                     for (int i = 0; i < contacts.Length; ++i)
                     {
                         Contact contact = contacts[i];
@@ -518,10 +677,10 @@ namespace Battlehub.MeshDeformer2
 
             if (nextMesh != null && next != null && (next != this || m_deformer.Scaffolds.Length == 1 && m_deformer.Loop))
             {
-
                 nextNormals = nextMesh.normals;
                 Contact[] nextContacts = next.GetContacts(deformer);
-                if (nextContacts.Length == contacts.Length) {
+                if (nextContacts.Length == contacts.Length)
+                {
                     for (int i = 0; i < contacts.Length; ++i)
                     {
                         Contact contact = contacts[i];
@@ -537,23 +696,23 @@ namespace Battlehub.MeshDeformer2
 
             if (prev != null)
             {
-                if(mesh != null)
+                if (mesh != null)
                 {
                     mesh.normals = normals;
                 }
-                
+
                 if (this != prev)
                 {
-                    if(prevMesh != null)
+                    if (prevMesh != null)
                     {
                         prevMesh.normals = prevNormals;
                     }
-                    
+
                 }
 
                 if (next != null && next != prev)
                 {
-                    if(nextMesh != null)
+                    if (nextMesh != null)
                     {
                         nextMesh.normals = nextNormals;
                     }
@@ -568,7 +727,7 @@ namespace Battlehub.MeshDeformer2
 
                 if (prev != null && prev != next)
                 {
-                    if(prevMesh != null)
+                    if (prevMesh != null)
                     {
                         prevMesh.normals = prevNormals;
                     }
@@ -576,17 +735,18 @@ namespace Battlehub.MeshDeformer2
 
                 if (this != next)
                 {
-                    if(nextMesh != null)
+                    if (nextMesh != null)
                     {
                         nextMesh.normals = nextNormals;
                     }
                 }
             }
         }
+        */
 
         private static Vector3 WrapAroundAxisTransform(MeshDeformer deformer, Vector3 vertex, Vector3 center, float curvature = 0.1f)
         {
-            Vector3 result = vertex;            
+            Vector3 result = vertex;
             if (deformer.Axis == Axis.X)
             {
                 result.y += Mathf.Pow((vertex.z - center.z), 2) * curvature * 0.01f;
@@ -624,6 +784,7 @@ namespace Battlehub.MeshDeformer2
 
             return center + Vector3.Scale(toVertex, scale);
         }
+
 
 
 
@@ -668,19 +829,23 @@ namespace Battlehub.MeshDeformer2
         }
 #endif
 
-    public ScaffoldWrapper GetWrapper(MeshDeformer deformer) {
-        return deformer.Scaffolds.Where(s => s.Obj == this).FirstOrDefault();
-    }
-
-    public MeshDeformer Deformer {
-        get {
-            return m_deformer;
+        public ScaffoldWrapper GetWrapper(MeshDeformer deformer)
+        {
+            return deformer.Scaffolds.Where(s => s.Obj == this).FirstOrDefault();
         }
-    }
 
-    public Contact[] GetContacts(MeshDeformer deformer) {
-        return m_mesh.FindContacts(deformer.MAxis);
-    }
+        public MeshDeformer Deformer
+        {
+            get
+            {
+                return m_deformer;
+            }
+        }
+
+        public Contact[] GetContacts(MeshDeformer deformer)
+        {
+            return m_mesh.FindContacts(deformer.MAxis);
+        }
 
     }
 

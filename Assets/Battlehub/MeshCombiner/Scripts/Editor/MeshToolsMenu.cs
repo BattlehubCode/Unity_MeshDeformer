@@ -8,8 +8,7 @@ using Battlehub.Integration;
 namespace Battlehub.MeshTools
 {
     public partial class MeshToolsMenu
-    {
-        
+    {   
         [MenuItem("Tools/Mesh/Remove Doubles", validate = true)]
         [MenuItem("Tools/Mesh/Combine", validate = true)]
         public static bool CanCombine()

@@ -384,50 +384,51 @@ namespace Battlehub.MeshDeformer2
                     name = deformer.ColliderOriginal.name;
                     deformer.ColliderOriginal = MeshSubdivider.Subdivide4(deformer.ColliderOriginal);
                     deformer.ColliderOriginal.name = name;
-
                 }
 
-                for (int i = 0; i < deformer.Scaffolds.Length; ++i)
-                {
-                    ScaffoldWrapper scaffold = deformer.Scaffolds[i];
-                    if (scaffold.Obj == null)
-                    {
-                        continue;
-                    }
+                RecalculateNormals(deformer);
 
-                    MeshFilter filter = scaffold.Obj.GetComponent<MeshFilter>();
-                    MeshCollider collider = scaffold.Obj.GetComponent<MeshCollider>();
+                //for (int i = 0; i < deformer.Scaffolds.Length; ++i)
+                //{
+                //    ScaffoldWrapper scaffold = deformer.Scaffolds[i];
+                //    if (scaffold.Obj == null)
+                //    {
+                //        continue;
+                //    }
 
-                    if (filter != null)
-                    {
-                        Mesh colliderMesh = null;
-                        if (collider != null)
-                        {
-                            collider.sharedMesh = Object.Instantiate(deformer.ColliderOriginal);
-                            collider.sharedMesh.name = deformer.ColliderOriginal.name + " Deformed";
-                            colliderMesh = collider.sharedMesh;
-                        }
+                //    MeshFilter filter = scaffold.Obj.GetComponent<MeshFilter>();
+                //    MeshCollider collider = scaffold.Obj.GetComponent<MeshCollider>();
 
-                        filter.sharedMesh = Object.Instantiate(deformer.Original);
-                        filter.sharedMesh.name = deformer.Original.name + " Deformed";
-                        scaffold.Wrap(filter.sharedMesh, colliderMesh, deformer.Axis, scaffold.CurveIndices, scaffold.SliceCount);
-                        scaffold.Deform(deformer, deformer.Original, deformer.ColliderOriginal);
-                        scaffold.RecalculateNormals();
-                    }
-                }
+                //    if (filter != null)
+                //    {
+                //        Mesh colliderMesh = null;
+                //        if (collider != null)
+                //        {
+                //            collider.sharedMesh = Object.Instantiate(deformer.ColliderOriginal);
+                //            collider.sharedMesh.name = deformer.ColliderOriginal.name + " Deformed";
+                //            colliderMesh = collider.sharedMesh;
+                //        }
 
-                ScaffoldWrapper prev = null;
-                if (deformer.Loop)
-                {
-                    prev = deformer.Scaffolds[deformer.Scaffolds.Length - 1];
-                }
+                //        filter.sharedMesh = Object.Instantiate(deformer.Original);
+                //        filter.sharedMesh.name = deformer.Original.name + " Deformed";
+                //        scaffold.Wrap(filter.sharedMesh, colliderMesh, deformer.Axis, scaffold.CurveIndices, scaffold.SliceCount);
+                //        scaffold.Deform(deformer, deformer.Original, deformer.ColliderOriginal);
+                //        scaffold.RecalculateNormals();
+                //    }
+                //}
 
-                for (int i = 0; i < deformer.Scaffolds.Length; ++i)
-                {
-                    ScaffoldWrapper scaffold = deformer.Scaffolds[i];
-                    scaffold.SlerpContacts(deformer, deformer.Original, deformer.ColliderOriginal, prev, null);
-                    scaffold = prev;
-                }
+                //ScaffoldWrapper prev = null;
+                //if (deformer.Loop)
+                //{
+                //    prev = deformer.Scaffolds[deformer.Scaffolds.Length - 1];
+                //}
+
+                //for (int i = 0; i < deformer.Scaffolds.Length; ++i)
+                //{
+                //    ScaffoldWrapper scaffold = deformer.Scaffolds[i];
+                //    scaffold.SlerpContacts(deformer, deformer.Original, deformer.ColliderOriginal, prev, null);
+                //    scaffold = prev;
+                //}
 
             }
             else
@@ -448,6 +449,51 @@ namespace Battlehub.MeshDeformer2
                     collider.sharedMesh = MeshSubdivider.Subdivide4(colliderMesh);
                     collider.sharedMesh.name = colliderMesh.name;
                 }
+            }
+        }
+
+        public static void RecalculateNormals(MeshDeformer deformer)
+        {
+            for (int i = 0; i < deformer.Scaffolds.Length; ++i)
+            {
+                ScaffoldWrapper scaffold = deformer.Scaffolds[i];
+                if (scaffold.Obj == null)
+                {
+                    continue;
+                }
+
+                MeshFilter filter = scaffold.Obj.GetComponent<MeshFilter>();
+                MeshCollider collider = scaffold.Obj.GetComponent<MeshCollider>();
+
+                if (filter != null)
+                {
+                    Mesh colliderMesh = null;
+                    if (collider != null)
+                    {
+                        collider.sharedMesh = Object.Instantiate(deformer.ColliderOriginal);
+                        collider.sharedMesh.name = deformer.ColliderOriginal.name + " Deformed";
+                        colliderMesh = collider.sharedMesh;
+                    }
+
+                    filter.sharedMesh = Object.Instantiate(deformer.Original);
+                    filter.sharedMesh.name = deformer.Original.name + " Deformed";
+                    scaffold.Wrap(filter.sharedMesh, colliderMesh, deformer.Axis, scaffold.CurveIndices, scaffold.SliceCount);
+                    scaffold.Deform(deformer, deformer.Original, deformer.ColliderOriginal);
+                    scaffold.RecalculateNormals();
+                }
+            }
+
+            ScaffoldWrapper prev = null;
+            if (deformer.Loop)
+            {
+                prev = deformer.Scaffolds[deformer.Scaffolds.Length - 1];
+            }
+
+            for (int i = 0; i < deformer.Scaffolds.Length; ++i)
+            {
+                ScaffoldWrapper scaffold = deformer.Scaffolds[i];
+                scaffold.SlerpContacts(deformer, deformer.Original, deformer.ColliderOriginal, prev, null);
+                scaffold = prev;
             }
         }
 
