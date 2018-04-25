@@ -500,13 +500,13 @@ namespace Battlehub.MeshDeformer2
             base.ResetOverride();
 
             m_filter = GetComponent<MeshFilter>();
-            if (m_original != null)
+            if (m_original != null && m_filter != null)
             {
                 m_filter.sharedMesh = m_original;
             }
 
             m_collider = GetComponent<MeshCollider>();
-            if (m_collider != null)
+            if (m_colliderOriginal != null && m_collider != null)
             {
                 m_collider.sharedMesh = m_colliderOriginal;
             }
@@ -514,7 +514,6 @@ namespace Battlehub.MeshDeformer2
             m_original = null;
             m_colliderOriginal = null;
             ResetDeformer();
-
         }
 
         public void WrapAndDeformAll()
