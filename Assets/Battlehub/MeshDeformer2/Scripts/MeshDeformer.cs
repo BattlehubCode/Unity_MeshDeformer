@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -184,18 +185,40 @@ namespace Battlehub.MeshDeformer2
 #if UNITY_EDITOR
             if (!Application.isPlaying)
             {
-                Internal_HasChanged = true;
+                Scene scene = SceneManager.GetActiveScene();
+                if (scene != null && scene.isDirty)
+                {
+                    //Prevent duplicated objects to be affected by control points of another mesh deformer.
+                    Internal_HasChanged = true;
+                }
+                   
+                EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
             }
 #endif
         }
 
 #if UNITY_EDITOR
+        private void OnPlayModeStateChanged(PlayModeStateChange state)
+        {
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            if (state == PlayModeStateChange.EnteredEditMode)
+            {
+                Internal_HasChanged = false;
+            }
+        }
+
+        private bool m_skipFrame = true;
         private void Update()
         {
             if (!Application.isPlaying)
             {
                 if (Internal_HasChanged)
                 {
+                    if (m_skipFrame)
+                    {
+                        m_skipFrame = false;
+                        return;
+                    }
                     Original = Original;
                     ColliderOriginal = ColliderOriginal;
                     WrapAndDeformAll();
