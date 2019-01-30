@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2015
+# Visual Studio 15
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity_MeshDeformer", "Unity_MeshDeformer.csproj", "{DCF488AE-6900-B44A-0F66-6EFDDAC2E7D6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unity_MeshDeformer.Editor", "Unity_MeshDeformer.Editor.csproj", "{75BD72E3-E972-0465-0B10-5C333069610E}"

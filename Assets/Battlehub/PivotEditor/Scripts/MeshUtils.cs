@@ -87,7 +87,7 @@ namespace Battlehub.MeshTools
             }
 
 
-            string path = "Assets/" + root + "SavedMeshes/" + name + ".prefab";
+            string path = "Assets/" + root + "SavedMeshes/" + name + ".asset";
             if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(mesh)))
             {
                 AssetDatabase.CreateAsset(mesh, AssetDatabase.GenerateUniqueAssetPath(path));

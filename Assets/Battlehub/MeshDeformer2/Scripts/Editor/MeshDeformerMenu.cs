@@ -158,7 +158,7 @@ namespace Battlehub.MeshDeformer2
                 {
                     Debug.LogWarning("Object with Non-uniform scale!");
 
-                    CombineResult result = MeshUtils.Combine(new[] { selected });
+                    CombineResult result = Battlehub.MeshTools.MeshUtils.Combine(new[] { selected });
                     selected = result.GameObject;
                     filter = selected.GetComponent<MeshFilter>();
                     mesh = filter.sharedMesh;
@@ -875,11 +875,11 @@ namespace Battlehub.MeshDeformer2
             MeshDeformer deformer = selected.GetComponentInParent<MeshDeformer>();
             GameObject[] gameObjects = deformer.GetComponentsInChildren<Scaffold>().Select(s => s.gameObject).ToArray();
 
-            CombineResult combineResult = MeshUtils.Combine(gameObjects, deformer.gameObject);
+            CombineResult combineResult = Battlehub.MeshTools.MeshUtils.Combine(gameObjects, deformer.gameObject);
             if (combineResult != null)
             {
                 CleanupCombined(combineResult.GameObject);
-                MeshUtils.SaveMesh(new[] { combineResult.GameObject }, "Battlehub/");
+                Battlehub.MeshTools.MeshUtils.SaveMesh(new[] { combineResult.GameObject }, "Battlehub/");
             }
             else
             {
@@ -900,7 +900,5 @@ namespace Battlehub.MeshDeformer2
                 UnityEngine.Object.DestroyImmediate(scaffold);
             }
         }
-
-      
     }
 }

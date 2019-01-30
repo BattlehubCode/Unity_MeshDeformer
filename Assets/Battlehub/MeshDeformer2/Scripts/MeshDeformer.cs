@@ -186,7 +186,7 @@ namespace Battlehub.MeshDeformer2
             if (!Application.isPlaying)
             {
                 Scene scene = SceneManager.GetActiveScene();
-                if (scene != null && scene.isDirty)
+                if (scene.isDirty)
                 {
                     //Prevent duplicated objects to be affected by control points of another mesh deformer.
                     Internal_HasChanged = true;

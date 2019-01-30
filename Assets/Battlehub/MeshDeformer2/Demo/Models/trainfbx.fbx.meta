@@ -1,0 +1,123 @@
+fileFormatVersion: 2
+guid: dbc54221b77bbd743a22e9a8790938bb
+timeCreated: 1457699805
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Fence
+    100002: Rails
+    100004: RailsCollider
+    100006: TChasisFront
+    100008: TChasisRear
+    100010: Train
+    100012: //RootNode
+    100014: Tree
+    100016: Vagon
+    100018: VChasisFront
+    100020: VChasisRear
+    400000: Fence
+    400002: Rails
+    400004: RailsCollider
+    400006: TChasisFront
+    400008: TChasisRear
+    400010: Train
+    400012: //RootNode
+    400014: Tree
+    400016: Vagon
+    400018: VChasisFront
+    400020: VChasisRear
+    2300000: Fence
+    2300002: Rails
+    2300004: RailsCollider
+    2300006: TChasisFront
+    2300008: TChasisRear
+    2300010: Train
+    2300012: Tree
+    2300014: Vagon
+    2300016: VChasisFront
+    2300018: VChasisRear
+    3300000: Fence
+    3300002: Rails
+    3300004: RailsCollider
+    3300006: TChasisFront
+    3300008: TChasisRear
+    3300010: Train
+    3300012: Tree
+    3300014: Vagon
+    3300016: VChasisFront
+    3300018: VChasisRear
+    4300000: Fence
+    4300002: RailsCollider
+    4300004: Tree
+    4300006: Vagon
+    4300008: VChasisFront
+    4300010: VChasisRear
+    4300012: Train
+    4300014: TChasisRear
+    4300016: TChasisFront
+    4300018: Rails
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleRotations: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
