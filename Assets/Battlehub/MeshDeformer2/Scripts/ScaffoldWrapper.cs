@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-using Battlehub.SplineEditor;
+using  Battlehub.MeshDeformer2;
 
 namespace Battlehub.MeshDeformer2
 {

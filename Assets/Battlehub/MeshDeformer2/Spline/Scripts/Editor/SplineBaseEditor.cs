@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 using System;
 using System.Linq;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     public class SplineBaseEditor : Editor
     {

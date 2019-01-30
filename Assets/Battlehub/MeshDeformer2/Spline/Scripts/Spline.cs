@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     [ExecuteInEditMode]
     public class Spline : SplineBase

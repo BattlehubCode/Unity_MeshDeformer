@@ -3,8 +3,6 @@ using UnityEditor;
 using System.Linq;
 using Battlehub.MeshTools;
 using Battlehub.Integration;
-using Battlehub.SplineEditor;
-using Battlehub.RTHandles;
 
 namespace Battlehub.MeshDeformer2
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     [ExecuteInEditMode]
     public class SplineControlPoint : MonoBehaviour

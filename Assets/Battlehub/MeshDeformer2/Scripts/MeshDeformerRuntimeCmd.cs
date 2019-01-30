@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Battlehub.SplineEditor;
+using  Battlehub.MeshDeformer2;
 using Battlehub.RTHandles;
 
 namespace Battlehub.MeshDeformer2

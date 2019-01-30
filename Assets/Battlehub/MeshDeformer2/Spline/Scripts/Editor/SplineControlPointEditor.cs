@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Linq;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(SplineControlPoint))]

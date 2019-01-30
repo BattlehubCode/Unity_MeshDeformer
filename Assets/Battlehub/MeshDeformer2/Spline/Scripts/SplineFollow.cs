@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     public class SplineFollow : MonoBehaviour
     {

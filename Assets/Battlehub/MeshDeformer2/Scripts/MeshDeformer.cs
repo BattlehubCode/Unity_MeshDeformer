@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using Battlehub.SplineEditor;
+using  Battlehub.MeshDeformer2;
 namespace Battlehub.MeshDeformer2
 {
     [ExecuteInEditMode]

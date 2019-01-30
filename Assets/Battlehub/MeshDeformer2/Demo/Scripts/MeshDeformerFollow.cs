@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using Battlehub.SplineEditor;
+using  Battlehub.MeshDeformer2;
 namespace Battlehub.MeshDeformer2
 {
     public class MeshDeformerFollow : MonoBehaviour

@@ -6,7 +6,7 @@ using Battlehub.RTHandles;
 using Battlehub.UIControls;
 using UnityEngine.EventSystems;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     [ExecuteInEditMode]
     [RequireComponent(typeof(GLRenderer))]

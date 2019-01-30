@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEditor;
 
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     [CustomEditor(typeof(Spline))]
     public class SplineEditor : SplineBaseEditor

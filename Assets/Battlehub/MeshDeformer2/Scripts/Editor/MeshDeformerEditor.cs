@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Linq;
-
-using Battlehub.SplineEditor;
 
 namespace Battlehub.MeshDeformer2
 {
     [CustomEditor(typeof(MeshDeformer))]
-    public class MeshDeformerEditor : SplineEditor.SplineBaseEditor
+    public class MeshDeformerEditor : SplineBaseEditor
     {
         private MeshDeformer m_deformer;
 

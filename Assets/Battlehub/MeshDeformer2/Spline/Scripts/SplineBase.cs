@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 using Battlehub.RTHandles;
-namespace Battlehub.SplineEditor
+namespace  Battlehub.MeshDeformer2
 {
     public enum ControlPointMode
     {
