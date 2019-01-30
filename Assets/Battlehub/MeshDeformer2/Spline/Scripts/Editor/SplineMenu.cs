@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using Battlehub.RTEditor;
+using UnityEngine.EventSystems;
+using UnityEditor.Events;
+using UnityEngine.Events;
 
-using Battlehub.RTHandles;
 namespace  Battlehub.MeshDeformer2
 {
     public static class SplineMenu
@@ -25,14 +28,29 @@ namespace  Battlehub.MeshDeformer2
 
         public static void CreateRuntimeEditor(GameObject commandsPanel, string name)
         {
-            GameObject go = new GameObject();
-            go.name = name; 
-            go.AddComponent<SplineRuntimeEditor>();
-            go.AddComponent<RuntimeSceneView>();
+            if (!Object.FindObjectOfType<EventSystem>())
+            {
+                GameObject es = new GameObject();
+                es.AddComponent<EventSystem>();
+                es.AddComponent<StandaloneInputModule>();
+                es.name = "EventSystem";
+            }
 
-            GameObject uiEditorGO = InstantiatePrefab("EditorUI.prefab");
+            GameObject go = new GameObject();
+            go.name = name;
+            SplineRuntimeEditor srtEditor = go.AddComponent<SplineRuntimeEditor>();
+
+            GameObject uiEditorGO = RTEditorMenu.InstantiateRuntimeEditor();
             uiEditorGO.transform.SetParent(go.transform, false);
-            commandsPanel.transform.SetParent(uiEditorGO.transform, false);
+
+            RuntimeEditor rtEditor = uiEditorGO.GetComponent<RuntimeEditor>();
+            UnityEventTools.AddPersistentListener(rtEditor.Closed, new UnityAction(srtEditor.OnClosed));
+
+
+            Placeholder[] placeholders = uiEditorGO.GetComponentsInChildren<Placeholder>(true);
+            Placeholder cmd = placeholders.Where(p => p.Id == Placeholder.CommandsPlaceholder).First();
+
+            commandsPanel.transform.SetParent(cmd.transform, false);
 
             Undo.RegisterCreatedObjectUndo(go, "Battlehub.Spline.CreateRuntimeEditor");
         }

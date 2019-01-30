@@ -5,7 +5,7 @@ namespace Battlehub.RTHandles
 {
     [ExecuteInEditMode]
     public class GLCamera : MonoBehaviour
-    {
+    {    
         private void OnPostRender()
         { 
             if(GLRenderer.Instance != null)
@@ -13,7 +13,6 @@ namespace Battlehub.RTHandles
                 GLRenderer.Instance.Draw();
             }
         }
-
     }
 }
 

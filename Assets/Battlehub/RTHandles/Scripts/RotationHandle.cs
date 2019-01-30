@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Battlehub.RTHandles
 {
+    //NOTE: Does not work with Global pivot rotation (always local)
     public class RotationHandle : BaseHandle
     {
         public float GridSize = 15.0f;
@@ -12,7 +13,7 @@ namespace Battlehub.RTHandles
         private Matrix4x4 m_targetInverse;
         private Matrix4x4 m_matrix;
         private Matrix4x4 m_inverse;
-
+   
         private const float innerRadius = 1.0f;
         private const float outerRadius = 1.2f;
         private const float hitDot = 0.2f;
@@ -28,7 +29,7 @@ namespace Battlehub.RTHandles
 
         protected override RuntimeTool Tool
         {
-            get { return RuntimeTool.Rotation; }
+            get { return RuntimeTool.Rotate; }
         }
 
         protected override float CurrentGridSize
@@ -39,7 +40,6 @@ namespace Battlehub.RTHandles
         protected override void StartOverride()
         {
             Current = this;
-         
         }
 
         protected override void OnDestroyOverride()
@@ -48,6 +48,12 @@ namespace Battlehub.RTHandles
             {
                 Current = null;
             }
+        }
+
+        protected override void OnEnableOverride()
+        {
+            base.OnEnableOverride();
+            
         }
 
         private bool Intersect(Ray r, Vector3 sphereCenter, float sphereRadius, out float hit1Distance, out float hit2Distance)
@@ -127,6 +133,7 @@ namespace Battlehub.RTHandles
 
         protected override bool OnBeginDrag()
         {
+         
             m_targetInverse = Matrix4x4.TRS(Target.position, Target.rotation, Vector3.one).inverse;
             SelectedAxis = Hit();
             m_deltaX = 0.0f;
@@ -250,14 +257,16 @@ namespace Battlehub.RTHandles
                 m_deltaY = 0.0f;
             }
 
-            Target.rotation *= rotation;
+            
+            for (int i = 0; i < Targets.Length; ++i)
+            {
+                Targets[i].rotation *= rotation;
+            }
         }
-
-    
 
         protected override void DrawOverride()
         {
-            RuntimeHandles.DoRotationHandle(Rotation, Target.position, SelectedAxis);
+            RuntimeHandles.DoRotationHandle(Target.rotation, Target.position, SelectedAxis);
         }
     }
 }

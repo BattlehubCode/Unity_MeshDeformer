@@ -356,9 +356,19 @@
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\MeshUtils.cs" />
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\Pivot.cs" />
     <Compile Include="Assets\Battlehub\PivotEditor\Scripts\PivotDesignTime.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\DragField.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\ExposeToEditor.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\HierarchyItem.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\Placeholder.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\RuntimeEditor.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\RuntimePrefabs.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\RuntimeToolsPanel.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\TransformComponent.cs" />
+    <Compile Include="Assets\Battlehub\RTEditor\Scripts\ViewportFitter.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\BaseHandle.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\GLCamera.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\GLRenderer.cs" />
+    <Compile Include="Assets\Battlehub\RTHandles\Scripts\Grid.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\MouseOrbit.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\PositionHandle.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\RotationHandle.cs" />
@@ -366,11 +376,18 @@
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\RuntimeHierarchy.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\RuntimeSceneView.cs" />
     <Compile Include="Assets\Battlehub\RTHandles\Scripts\ScaleHandle.cs" />
+    <Compile Include="Assets\Battlehub\RTHandles\Scripts\SceneGizmo.cs" />
     <Compile Include="Assets\Battlehub\UIControls\ItemContainer.cs" />
     <Compile Include="Assets\Battlehub\UIControls\ItemsControl.cs" />
     <Compile Include="Assets\Battlehub\UIControls\ListBox.cs" />
     <Compile Include="Assets\Battlehub\UIControls\ListBoxItem.cs" />
+    <Compile Include="Assets\Battlehub\UIControls\Scripts\ItemDropMarker.cs" />
+    <Compile Include="Assets\Battlehub\UIControls\Scripts\TreeView.cs" />
+    <Compile Include="Assets\Battlehub\UIControls\Scripts\TreeViewDropMarker.cs" />
+    <Compile Include="Assets\Battlehub\UIControls\Scripts\TreeViewExpander.cs" />
+    <Compile Include="Assets\Battlehub\UIControls\Scripts\TreeViewItem.cs" />
     <Compile Include="Assets\Battlehub\Utils\EditorStopwatch.cs" />
+    <Compile Include="Assets\Battlehub\Utils\ExposePropertyAttribute.cs" />
     <Compile Include="Assets\Battlehub\Utils\Run.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -381,6 +398,8 @@
     <None Include="Assets\Battlehub\MeshDeformer2\Demo\Standard Assets\ParticleSystems\Shaders\PriorityParticleAlpha.shader" />
     <None Include="Assets\Battlehub\MeshDeformer2\Spline\Shaders\Resources\SSBillboard.shader" />
     <None Include="Assets\Battlehub\MeshDeformer2\Spline\Shaders\Resources\Spline.shader" />
+    <None Include="Assets\Battlehub\RTHandles\Shaders\Resources\Billboard.shader" />
+    <None Include="Assets\Battlehub\RTHandles\Shaders\Resources\Grid.shader" />
     <None Include="Assets\Battlehub\RTHandles\Shaders\Resources\Shape.shader" />
     <None Include="Assets\Battlehub\RTHandles\Shaders\Resources\VertexColor.shader" />
     <None Include="Assets\Battlehub\RTHandles\Shaders\Resources\VertexColorBillboard.shader" />

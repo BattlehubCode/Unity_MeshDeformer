@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
-using  Battlehub.MeshDeformer2;
-using Battlehub.RTHandles;
+using Battlehub.RTEditor;
 
 namespace Battlehub.MeshDeformer2
 {
@@ -9,10 +7,10 @@ namespace Battlehub.MeshDeformer2
     {
         public override void Append()
         {
-            if (SplineRuntimeEditor.Instance != null)
+            RunAction<SplineBase>((spline, go) =>
             {
-                MeshDeformer deformer = SplineRuntimeEditor.Instance.SelectedSpline as MeshDeformer;
-                if (deformer != null)
+                MeshDeformer deformer = spline as MeshDeformer;
+                if(deformer != null)
                 {
                     deformer.Append();
                 }
@@ -20,15 +18,15 @@ namespace Battlehub.MeshDeformer2
                 {
                     base.Append();
                 }
-            }
+            });
         }
 
         public override void Insert()
         {
-            if (SplineRuntimeEditor.Instance != null)
+            RunAction<SplineBase>((spline, go) =>
             {
-                MeshDeformer deformer = SplineRuntimeEditor.Instance.SelectedSpline as MeshDeformer;
-                if(deformer != null)
+                MeshDeformer deformer = spline as MeshDeformer;
+                if (deformer != null)
                 {
                     GameObject selection = RuntimeSelection.activeGameObject;
                     if (selection != null)
@@ -44,14 +42,14 @@ namespace Battlehub.MeshDeformer2
                 {
                     base.Insert();
                 }
-            }
+            });
         }
 
         public override void Prepend()
         {
-            if (SplineRuntimeEditor.Instance != null)
+            RunAction<SplineBase>((spline, go) =>
             {
-                MeshDeformer deformer = SplineRuntimeEditor.Instance.SelectedSpline as MeshDeformer;
+                MeshDeformer deformer = spline as MeshDeformer;
                 if (deformer != null)
                 {
                     deformer.Prepend();
@@ -60,14 +58,14 @@ namespace Battlehub.MeshDeformer2
                 {
                     base.Prepend();
                 }
-            }
+            });
         }
 
         public override void Remove()
         {
-            if (SplineRuntimeEditor.Instance != null)
+            RunAction<SplineBase>((spline, go) =>
             {
-                MeshDeformer deformer = SplineRuntimeEditor.Instance.SelectedSpline as MeshDeformer;
+                MeshDeformer deformer = spline as MeshDeformer;
                 if (deformer != null)
                 {
                     GameObject selection = RuntimeSelection.activeGameObject;
@@ -85,7 +83,7 @@ namespace Battlehub.MeshDeformer2
                 {
                     base.Remove();
                 }
-            }
+            });
         }
 
         public override void Smooth()

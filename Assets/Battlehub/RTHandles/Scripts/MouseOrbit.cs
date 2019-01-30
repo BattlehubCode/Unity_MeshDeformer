@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace Battlehub.RTHandles
+namespace Battlehub.RTEditor
 {
     [AddComponentMenu("Camera-Control/Mouse Orbit with zoom")]
     public class MouseOrbit : MonoBehaviour
     {
-        public Vector3 Target;
+        private Camera m_camera;
+        public Transform Target;
         public float Distance = 5.0f;
         public float XSpeed = 5.0f;
         public float YSpeed = 5.0f;
@@ -20,12 +21,17 @@ namespace Battlehub.RTHandles
         private float m_x = 0.0f;
         private float m_y = 0.0f;
 
-        private void Start()
+        private void Awake()
         {
-            Init();
+            m_camera = GetComponent<Camera>();
         }
 
-        public void Init()
+        private void Start()
+        {
+            SyncAngles();
+        }
+
+        public void SyncAngles()
         {
             Vector3 angles = transform.eulerAngles;
             m_x = angles.y;
@@ -50,13 +56,22 @@ namespace Battlehub.RTHandles
         public void Zoom()
         {
             Quaternion rotation = Quaternion.Euler(m_y, m_x, 0);
-
-            Distance = Mathf.Clamp(Distance - Input.GetAxis("Mouse ScrollWheel") * Distance, DistanceMin, DistanceMax);
-
-            Vector3 negDistance = new Vector3(0.0f, 0.0f, -Distance);
-            Vector3 position = rotation * negDistance + Target;
-
             transform.rotation = rotation;
+
+            float mwheel = Input.GetAxis("Mouse ScrollWheel");
+
+            if (m_camera.orthographic)
+            {
+                m_camera.orthographicSize -= mwheel * m_camera.orthographicSize;
+                if(m_camera.orthographicSize < 0.01f)
+                {
+                    m_camera.orthographicSize = 0.01f;
+                }
+            }
+
+            Distance = Mathf.Clamp(Distance - mwheel * Distance, DistanceMin, DistanceMax);
+            Vector3 negDistance = new Vector3(0.0f, 0.0f, -Distance);
+            Vector3 position = rotation * negDistance + Target.position;
             transform.position = position;
         }
 

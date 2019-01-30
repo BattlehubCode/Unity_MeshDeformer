@@ -33,17 +33,28 @@ Shader "Battlehub/RTHandles/VertexColor" {
 				float4 color: COLOR;
 			};
 
+
+			inline float4 GammaToLinearSpace(float4 sRGB)
+			{
+				if (IsGammaSpace())
+				{
+					return sRGB;
+				}
+				return sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h);
+			}
+
 			vertexOutput vert(vertexInput input)
 			{
 				vertexOutput output;
 				output.pos = UnityObjectToClipPos(input.vertex);
-				output.color = input.color;
+				output.color = GammaToLinearSpace(input.color);
+				output.color.a = input.color.a;
 				return output;
 			}
 
 			float4 frag(vertexOutput input) : COLOR
 			{ 
-				return input.color;
+				return  input.color;
 			}	
 
 			ENDCG

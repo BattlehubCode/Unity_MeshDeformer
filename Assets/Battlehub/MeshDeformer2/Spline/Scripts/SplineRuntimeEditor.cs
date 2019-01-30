@@ -5,6 +5,7 @@ using System.Linq;
 using Battlehub.RTHandles;
 using Battlehub.UIControls;
 using UnityEngine.EventSystems;
+using Battlehub.RTEditor;
 
 namespace  Battlehub.MeshDeformer2
 {
@@ -16,27 +17,29 @@ namespace  Battlehub.MeshDeformer2
         public static event EventHandler Destroyed;
 
         public Camera Camera;
-        public float SelectionMargin = 10;
-        public float Smoothness = 5.0f;
-        public static readonly Color SplineColor = Color.green;
+        public float SelectionMargin = 20;
         public static readonly Color MirroredModeColor = Color.red;
         public static readonly Color AlignedModeColor = Color.blue;
         public static readonly Color FreeModeColor = Color.yellow;
         public static readonly Color ControlPointLineColor = Color.gray;
 
-        private Material m_splineMaterial;
+        private Material m_connectedMaterial;
         private Material m_normalMaterial;
         private Material m_mirroredModeMaterial;
         private Material m_alignedModeMaterial;
         private Material m_freeModeMaterial;
         private Mesh m_controlPointMesh;
 
-        private bool m_unselectControlPoint;
-        private RuntimeHierarchy m_hierarchy;
-        
+        private bool m_isApplicationQuit;
+
         public Mesh ControlPointMesh
         {
             get { return m_controlPointMesh; }
+        }
+
+        public Material ConnectedMaterial
+        {
+            get { return m_connectedMaterial; }
         }
 
         public Material MirroredModeMaterial
@@ -59,34 +62,27 @@ namespace  Battlehub.MeshDeformer2
             get { return m_normalMaterial; }
         }
 
-        public Material SplineMaterial
-        {
-            get { return m_splineMaterial; }
-        }
-
         private static SplineRuntimeEditor m_instance;
         public static SplineRuntimeEditor Instance
         {
             get { return m_instance; }
         }
 
-        private SplineBase m_selectedSpline;
-        public SplineBase SelectedSpline
-        {
-            get { return m_selectedSpline; }
-            set
-            {
-                if(m_selectedSpline != value)
-                {
-                    SplineBase oldSpline = m_selectedSpline;
-                    m_selectedSpline = value;
-                    OnSelectedSplineChanged(oldSpline, m_selectedSpline);
-                }
-            }
-        }
-
         private void Awake()
         {
+#if UNITY_EDITOR
+            UnityEditor.Selection.activeObject = null;
+#endif
+
+            if (Camera == null)
+            {
+                Camera = Camera.main;
+                if (Camera.main == null)
+                {
+                    Debug.LogError("Add Camera with MainCamera Tag");
+                }
+            }
+
             if (m_instance != null)
             {
                 Debug.LogWarning("Another instance of SplineEditorSettings already exist");
@@ -95,7 +91,7 @@ namespace  Battlehub.MeshDeformer2
             if (m_mirroredModeMaterial == null)
             {
                 Shader shader = Shader.Find("Battlehub/SplineEditor/SSBillboard");
-           
+
                 m_mirroredModeMaterial = new Material(shader);
                 m_mirroredModeMaterial.name = "MirroredModeMaterial";
                 m_mirroredModeMaterial.color = MirroredModeColor;
@@ -122,15 +118,14 @@ namespace  Battlehub.MeshDeformer2
             {
                 m_normalMaterial = Instantiate(m_mirroredModeMaterial);
                 m_normalMaterial.name = "SplineMaterial";
-                m_normalMaterial.color = SplineColor;
+                m_normalMaterial.color = Color.green;
             }
 
-            if(m_splineMaterial == null)
+            if (m_connectedMaterial == null)
             {
-                Shader shader = Shader.Find("Battlehub/SplineEditor/Spline");
-                m_splineMaterial = new Material(shader);
-                m_splineMaterial.name = "SplineMaterial";
-                m_splineMaterial.color = SplineColor;
+                m_connectedMaterial = Instantiate(m_mirroredModeMaterial);
+                m_connectedMaterial.name = "BranchMaterial";
+                m_connectedMaterial.color = new Color32(0xa5, 0x00, 0xff, 0xff);
             }
 
             if (m_controlPointMesh == null)
@@ -161,16 +156,7 @@ namespace  Battlehub.MeshDeformer2
             m_instance = this;
             EnableRuntimeEditing();
 
-            m_hierarchy = GetComponentInChildren<RuntimeHierarchy>();
-            if(m_hierarchy != null)
-            {
-                m_hierarchy.TypeCriteria = typeof(SplineBase);
-                m_hierarchy.SelectionChanged += OnHierarchySelectionChanged;
-
-#if UNITY_EDITOR
-                m_hierarchy.SelectedItem = UnityEditor.Selection.activeGameObject;
-#endif
-            }
+            RuntimeSelection.SelectionChanged += OnRuntimeSelectionChanged;
         }
 
         private void Start()
@@ -179,13 +165,11 @@ namespace  Battlehub.MeshDeformer2
             {
                 Created(this, EventArgs.Empty);
             }
+        }
 
-            if(Camera == null)
-            {
-                Camera = Camera.main;
-            }
-
-
+        private void OnApplicationQuit()
+        {
+            m_isApplicationQuit = true;
         }
 
         private void OnDestroy()
@@ -195,84 +179,61 @@ namespace  Battlehub.MeshDeformer2
                 DisableRuntimeEditing();
             }
 
+            bool enteringPlayMode = false;
+#if UNITY_EDITOR
+            enteringPlayMode = UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode && !UnityEditor.EditorApplication.isPlaying;
+#endif
+
+
+            if (!m_isApplicationQuit && !enteringPlayMode)
+            {
+                SplineControlPoint[] controlPoints = Resources.FindObjectsOfTypeAll<SplineControlPoint>();
+                for (int i = 0; i < controlPoints.Length; ++i)
+                {
+                    SplineControlPoint controlPoint = controlPoints[i];
+                    if (controlPoint != null)
+                    {
+                        controlPoint.DestroyRuntimeComponents();
+                    }
+                }
+            }
+
             if (Destroyed != null)
             {
                 Destroyed(this, EventArgs.Empty);
             }
 
-            if (m_hierarchy != null)
-            {
-                m_hierarchy.SelectionChanged -= OnHierarchySelectionChanged;
-            }
-
+            RuntimeSelection.SelectionChanged -= OnRuntimeSelectionChanged;
 
             m_instance = null;
-
         }
-
-
 
         private void DisableRuntimeEditing()
         {
-            Camera[] allCameras = Camera.allCameras;
-            for (int i = 0; i < allCameras.Length; ++i)
+            if (Camera != null)
             {
-                Camera camera = allCameras[i];
-                GLCamera glLinesCamera = camera.GetComponent<GLCamera>();
-                if (glLinesCamera != null)
+                GLCamera glCamera = Camera.GetComponent<GLCamera>();
+                if (glCamera != null)
                 {
-                    DestroyImmediate(glLinesCamera);
+                    DestroyImmediate(glCamera);
                 }
             }
         }
 
         private void EnableRuntimeEditing()
         {
-            Camera[] allCameras = Camera.allCameras;
-            for (int i = 0; i < allCameras.Length; ++i)
+            if (Camera == null)
             {
-                Camera camera = allCameras[i];
-                if (!camera.GetComponent<GLCamera>())
-                {
-                    camera.gameObject.AddComponent<GLCamera>();
-                }
+                return;
+            }
+            if (!Camera.GetComponent<GLCamera>())
+            {
+                Camera.gameObject.AddComponent<GLCamera>();
             }
         }
 
         private void LateUpdate()
         {
-            if (Application.isPlaying)
-            {
-                if (SelectedSpline != null)
-                {
-                    if (Input.GetMouseButtonDown(0) && (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()))
-                    {
-                        int selectedIndex = HitTest();
-                        if (selectedIndex != -1)
-                        {
-                            SplineControlPoint ctrlPoint = SelectedSpline.GetComponentsInChildren<SplineControlPoint>().Where(p => p.Index == selectedIndex).FirstOrDefault();
-                            RuntimeSelection.activeGameObject = ctrlPoint.gameObject;
-                        }
-                        else
-                        {
-                            if (RuntimeTools.Current != RuntimeTool.View)
-                            {
-                                if (RuntimeSelection.activeGameObject != null)
-                                {
-                                    if(PositionHandle.Current != null && !PositionHandle.Current.IsDragging)
-                                    {
-                                        if (SelectedSpline != null)
-                                        {
-                                            RuntimeSelection.activeGameObject = SelectedSpline.gameObject;
-                                        }
-                                    }    
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
             if (m_instance == null)
             {
                 m_instance = this;
@@ -288,105 +249,181 @@ namespace  Battlehub.MeshDeformer2
             }
         }
 
-        private void OnHierarchySelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OnRuntimeSelectionChanged(UnityEngine.Object[] unselected)
         {
-            if (e.NewItem != null && e.NewItem is SplineBase)
+            SplineBase minSpline = null;
+            int minIndex = -1;
+            float minDistance = float.PositiveInfinity;
+            if (unselected != null)
             {
-                SplineBase newSpline = (SplineBase)e.NewItem;
-                if (!newSpline.IsSelected)
-                {
-                    newSpline.Select();
-                }
+                GameObject[] gameObjects = unselected.OfType<GameObject>().ToArray();
 
-#if UNITY_EDITOR
-                if(UnityEditor.Selection.activeGameObject == null || UnityEditor.Selection.activeGameObject.GetComponentInParent<SplineBase>() != m_hierarchy.SelectedItem)
+                for (int i = 0; i < gameObjects.Length; ++i)
                 {
-                    UnityEditor.Selection.activeObject = m_hierarchy.SelectedItem;
-                }
-#endif
-            }
-            else if(e.OldItem != null && e.OldItem is SplineBase)
-            {
-                SplineBase oldSpline = (SplineBase)e.OldItem;
-                if(oldSpline.IsSelected)
-                {
-                    oldSpline.Unselect();
-                }
-
-#if UNITY_EDITOR
-                if (UnityEditor.Selection.activeObject == (UnityEngine.Object)e.OldItem)
-                {
-                    UnityEditor.Selection.activeObject = null;
-                }
-
-#endif
-            }
-        }
-
-        private void OnSelectedSplineChanged(SplineBase oldSpline, SplineBase newSpline)
-        {
-            if (Application.isPlaying)
-            {
-                if (oldSpline != null)
-                {
-                    oldSpline.Unselect();
-                    if(RuntimeSelection.activeGameObject != null && RuntimeSelection.activeGameObject.GetComponentInParent<SplineBase>() == oldSpline)
+                    GameObject go = gameObjects[i];
+                    if (go == null)
                     {
-                        RuntimeSelection.activeGameObject = null;
+                        continue;
+                    }
+
+                    SplineBase spline = go.GetComponentInParent<SplineBase>();
+                    if (spline == null)
+                    {
+                        continue;
+                    }
+
+                    spline.Select();
+                    float distance = minDistance;
+                    SplineBase hitSpline;
+                    int selectedIndex = HitTest(spline, minDistance, out hitSpline, out distance);
+                    if (distance < minDistance && selectedIndex != -1)
+                    {
+                        minDistance = distance;
+                        minIndex = selectedIndex;
+                        minSpline = hitSpline;
+                    }
+                    spline.Unselect();
+                }
+
+                if (minSpline != null)
+                {
+                    SplineControlPoint ctrlPoint = minSpline.GetSplineControlPoints().Where(p => p.Index == minIndex).FirstOrDefault();
+                    if (ctrlPoint != null)
+                    {
+                        RuntimeSelection.activeObject = ctrlPoint.gameObject;
+                    }
+                    minSpline.Select();
+
+                    return;
+                }
+            }
+
+            if (RuntimeSelection.gameObjects != null)
+            {
+                GameObject[] gameObjects = RuntimeSelection.gameObjects;
+                if (gameObjects != null)
+                {
+                    for (int i = 0; i < gameObjects.Length; ++i)
+                    {
+                        SplineBase spline = gameObjects[i].GetComponentInParent<SplineBase>();
+                        if (spline != null)
+                        {
+                            spline.Select();
+                        }
                     }
                 }
-
-                if (newSpline != null)
-                {
-                    RuntimeSelection.activeGameObject = newSpline.gameObject;
-                }
-                m_hierarchy.SelectedItem = newSpline;
-
-
             }
-            else
-            {
-                if (oldSpline != null)
-                {
-                    oldSpline.Unselect();
-                }
-            }
-
         }
 
-
-        private int HitTest()
+        private int HitTest(SplineBase spline, float distance, out SplineBase resultSpline, out float resultDistance)
         {
-            if(Camera == null)
+            resultSpline = null;
+            resultDistance = float.MaxValue;
+            int minIndex = -1;
+
+            float minDistance;
+            int index = HitTest(spline, out minDistance);
+            if (index > -1 && minDistance < distance)
+            {
+                resultSpline = spline;
+                resultDistance = minDistance;
+                distance = minDistance;
+                minIndex = index;
+            }
+
+            //if (spline.Children != null)
+            //{
+            //    for (int i = 0; i < spline.Children.Length; ++i)
+            //    {
+            //        SplineBase child = spline.Children[i];
+            //        SplineBase childResult;
+            //        float childDistance;
+            //        int childIndex = HitTestRecursive(child, distance, out childResult, out childDistance);
+            //        if (childIndex > -1)
+            //        {
+            //            resultSpline = childResult;
+            //            resultDistance = childDistance;
+            //            distance = minDistance;
+
+            //            minIndex = childIndex;
+            //        }
+            //    }
+            //}
+
+            return minIndex;
+        }
+
+        private int HitTest(SplineBase spline, out float minDistance)
+        {
+            minDistance = float.PositiveInfinity;
+            if (Camera == null)
             {
                 Debug.LogError("Camera is null");
                 return -1;
             }
 
-            int count = SelectedSpline.ControlPointCount;
-            Vector3[] ctrlPoints = new Vector3[count];
-            for(int i = 0; i < count; ++i)
+            if (RuntimeSelection.gameObjects == null)
             {
-                ctrlPoints[i] = SelectedSpline.GetControlPoint(i);
+                return -1;
             }
 
+            Vector3[] controlPoints = new Vector3[spline.ControlPointCount];
+            for (int j = 0; j < controlPoints.Length; j++)
+            {
+                controlPoints[j] = spline.GetControlPoint(j);
+            }
 
-            float minMag = SelectionMargin * SelectionMargin;
+            minDistance = SelectionMargin * SelectionMargin;
             int selectedIndex = -1;
             Vector2 mousePositon = Input.mousePosition;
-            for(int i = 0; i < count; ++i)
+            for (int i = 0; i < controlPoints.Length; ++i)
             {
-                Vector3 ctrlPoint = ctrlPoints[i];
+                Vector3 ctrlPoint = controlPoints[i];
+                if (spline.IsControlPointLocked(i))
+                {
+                    continue;
+                }
                 Vector2 pt = Camera.WorldToScreenPoint(ctrlPoint);
                 float mag = (pt - mousePositon).sqrMagnitude;
-                if (mag < minMag )
+                if (mag < minDistance)
                 {
-                    minMag = mag;
+                    minDistance = mag;
                     selectedIndex = i;
                 }
             }
 
             return selectedIndex;
+        }
+
+        public void OnClosed()
+        {
+            if (RuntimeSelection.gameObjects == null)
+            {
+                return;
+            }
+
+            GameObject[] gameObjects = RuntimeSelection.gameObjects.OfType<GameObject>().ToArray();
+            for (int i = 0; i < gameObjects.Length; ++i)
+            {
+                GameObject go = gameObjects[i];
+                if (go == null)
+                {
+                    continue;
+                }
+
+                SplineBase spline = go.GetComponentInParent<SplineBase>();
+                if (spline == null)
+                {
+                    continue;
+                }
+
+                spline.Unselect();
+            }
+        }
+
+        public void OnOpened()
+        {
+
         }
     }
 

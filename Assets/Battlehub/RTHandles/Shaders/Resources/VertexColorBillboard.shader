@@ -13,7 +13,6 @@ Shader "Battlehub/RTHandles/VertexColorBillboard"
 		Pass{
 		CGPROGRAM
 
-		#include "UnityCG.cginc"
 		#pragma vertex vert  
 		#pragma fragment frag 
 
@@ -26,15 +25,25 @@ Shader "Battlehub/RTHandles/VertexColorBillboard"
 			float4 color: COLOR;
 		};
 
+		#include "UnityCG.cginc"
+		inline float4 GammaToLinearSpace(float4 sRGB)
+		{
+			if (IsGammaSpace())
+			{
+				return sRGB;
+			}
+			return sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h);
+		}
+
 		vertexOutput vert(vertexInput input)
 		{
 			vertexOutput output;
 			float scaleX = length(mul(unity_ObjectToWorld, float4(1.0, 0.0, 0.0, 0.0)));
 			float scaleY = length(mul(unity_ObjectToWorld, float4(0.0, 1.0, 0.0, 0.0)));
-
 			output.pos = mul(UNITY_MATRIX_P,
 				float4(UnityObjectToViewPos(float3(0.0, 0.0, 0.0)), 1.0) - float4(input.vertex.x * scaleX, input.vertex.y * scaleY, 0.0, 0.0));
-			output.color = input.color;
+			output.color = GammaToLinearSpace(input.color);
+			output.color.a = input.color.a;
 			return output;
 		}
 

@@ -47,6 +47,11 @@ namespace Battlehub.RTHandles
           
         }
 
+        private void OnDestroy()
+        {
+            m_instance = null;
+        }
+
         public void Draw()
         {
             if(m_renderObjects == null)
@@ -55,16 +60,22 @@ namespace Battlehub.RTHandles
             }
 
             GL.PushMatrix();
-            for (int i = 0; i < m_renderObjects.Count; ++i)
+            try
             {
-                IGL line = m_renderObjects[i];
-                line.Draw();
+                for (int i = 0; i < m_renderObjects.Count; ++i)
+                {
+                    IGL line = m_renderObjects[i];
+                    line.Draw();
+                }
             }
-            GL.PopMatrix();
+            finally
+            {
+                GL.PopMatrix();
+            } 
         }
 
 
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         private void Update()
         {
             if (m_instance == null)
@@ -73,6 +84,19 @@ namespace Battlehub.RTHandles
                 m_renderObjects = new List<IGL>();
             }
         }
-#endif
+        [UnityEditor.Callbacks.DidReloadScripts(99)]
+        private static void OnScriptsReloaded()
+        {
+            if(m_instance == null)
+            {
+                GLRenderer glRenderer = FindObjectOfType<GLRenderer>();
+                if(glRenderer != null)
+                {
+                    glRenderer.m_renderObjects = new List<IGL>();
+                    m_instance = glRenderer;
+                }
+            }
+        }
+        #endif
     }
 }

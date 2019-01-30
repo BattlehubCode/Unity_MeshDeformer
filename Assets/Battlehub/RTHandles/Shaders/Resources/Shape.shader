@@ -7,6 +7,8 @@ Shader "Battlehub/RTHandles/Shape" {
 		_ZWrite("ZWrite", Float) = 0.0
 		_ZTest("ZTest", Float) = 0.0
 		_Cull("Cull", Float) = 0.0
+		_OFactors("OFactors", Float) = 0.0
+		_OUnits("OUnits", Float) = 0.0
 	}
 	SubShader
 	{
@@ -17,6 +19,7 @@ Shader "Battlehub/RTHandles/Shape" {
 			Cull Back
 			ZTest[_ZTest]
 			ZWrite[_ZWrite]
+			Offset [_OFactors], [_OUnits]
 			CGPROGRAM
 
 			#include "UnityCG.cginc"
@@ -35,13 +38,26 @@ Shader "Battlehub/RTHandles/Shape" {
 
 			fixed4 _Color;
 
+
+			inline float4 GammaToLinearSpace(float4 sRGB)
+			{
+				if (IsGammaSpace())
+				{
+					return sRGB;
+				}
+				return sRGB * (sRGB * (sRGB * 0.305306011h + 0.682171111h) + 0.012522878h);
+			}
+
 			vertexOutput vert(vertexInput input)
 			{
 				float3 viewNorm = normalize(mul((float3x3)UNITY_MATRIX_IT_MV, input.normal));
 				vertexOutput output;
 				output.pos = UnityObjectToClipPos(input.vertex);
 				output.color = input.color * 1.5 * dot(viewNorm, float3(0, 0, 1));
+				output.color = GammaToLinearSpace(output.color);
 				output.color.a = input.color.a;
+
+				
 				return output;
 			}
 

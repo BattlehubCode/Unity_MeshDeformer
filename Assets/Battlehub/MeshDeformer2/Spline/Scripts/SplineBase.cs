@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -36,24 +37,25 @@ namespace  Battlehub.MeshDeformer2
             Z = z;
         }
 
-        public static implicit operator Vector3 (Vector3Serialziable v)
+        public static implicit operator Vector3(Vector3Serialziable v)
         {
             return new Vector3(v.X, v.Y, v.Z);
         }
-        
+
         public static implicit operator Vector3Serialziable(Vector3 v)
         {
             return new Vector3Serialziable(v.x, v.y, v.z);
         }
     }
 
+#if USE_BINARY_FORMATTER
     [Serializable]
     public class Vector3SerialziableArray : List<Vector3Serialziable>
     {
-        public static implicit operator Vector3[](Vector3SerialziableArray v)
+        public static implicit operator Vector3[] (Vector3SerialziableArray v)
         {
             Vector3[] result = new Vector3[v.Count];
-            for(int i = 0; i < v.Count; ++i)
+            for (int i = 0; i < v.Count; ++i)
             {
                 result[i] = v[i];
             }
@@ -70,7 +72,6 @@ namespace  Battlehub.MeshDeformer2
             return result;
         }
     }
-
     [Serializable]
     public struct SplineSnapshot
     {
@@ -144,23 +145,106 @@ namespace  Battlehub.MeshDeformer2
         }
     }
 
-    public delegate void ControlPointChanged(int pointIndex);
-
-    [Serializable]
-    public struct Wrap
+    public class Vector3SerializationSurrogate : ISerializationSurrogate
     {
-        public readonly static Wrap Null = new Wrap();
-        public float Data;
-        public float T1;
-        public float T2;
-
-        public Wrap(float data, float t1, float t2)
+        public void GetObjectData(object obj, SerializationInfo info, StreamingContext context)
         {
-            Data = data;
-            T1 = t1;
-            T2 = t2;
+            Vector3 v3 = (Vector3)obj;
+            info.AddValue("x", v3.x);
+            info.AddValue("y", v3.y);
+            info.AddValue("z", v3.z);
+        }
+        public object SetObjectData(object obj, SerializationInfo info, StreamingContext context, ISurrogateSelector selector)
+        {
+            Vector3 v3 = (Vector3)obj;
+            v3.x = (float)info.GetValue("x", typeof(float));
+            v3.y = (float)info.GetValue("y", typeof(float));
+            v3.z = (float)info.GetValue("z", typeof(float));
+            obj = v3;
+            return obj;
         }
     }
+#else
+    [Serializable]
+    public struct SplineSnapshot
+    {
+        [SerializeField]
+        private Vector3[] m_points;
+
+        [SerializeField]
+        private ControlPointSetting[] m_controlPointSettings;
+
+        [SerializeField]
+        private ControlPointMode[] m_modes;
+
+        [SerializeField]
+        private bool m_loop;
+
+        public int CurveCount
+        {
+            get { return (m_points.Length - 1) / 3; }
+        }
+
+        public Vector3[] Points
+        {
+            get { return m_points; }
+        }
+
+        public ControlPointSetting[] ControlPointSettings
+        {
+            get { return m_controlPointSettings; }
+        }
+
+        public ControlPointMode[] Modes
+        {
+            get { return m_modes; }
+        }
+
+        public bool Loop
+        {
+            get { return m_loop; }
+        }
+
+        public SplineSnapshot(Vector3[] points, ControlPointSetting[] settings, ControlPointMode[] modes, bool loop)
+        {
+            int modeLength = (points.Length - 1) / 3;
+            int settingLength = (points.Length - 1) / 2;
+            int pointsLength = modeLength * 3 + 1;
+            modeLength += 1;
+            if (modeLength < 1)
+            {
+                throw new ArgumentException("too few points. at least 4 required");
+            }
+
+            m_points = points;
+            if (pointsLength != m_points.Length)
+            {
+                Array.Resize(ref points, pointsLength);
+            }
+
+            m_controlPointSettings = settings;
+            if (settingLength != m_controlPointSettings.Length)
+            {
+                Array.Resize(ref settings, settingLength);
+            }
+
+            m_modes = modes;
+            if (modeLength != m_modes.Length)
+            {
+                Array.Resize(ref m_modes, modeLength);
+            }
+
+            m_loop = loop;
+        }
+    }
+#endif
+
+
+
+
+
+
+    public delegate void ControlPointChanged(int pointIndex);
 
     [Serializable]
     public struct Twist
@@ -184,11 +268,30 @@ namespace  Battlehub.MeshDeformer2
     {
         public readonly static Thickness Null = new Thickness();
 
+        //upgarde from 2.03 to 2.04 or higher
+        //public Vector3 Data;
         public Vector3Serialziable Data;
         public float T1;
         public float T2;
 
         public Thickness(Vector3 data, float t1, float t2)
+        {
+            Data = data;
+            T1 = t1;
+            T2 = t2;
+        }
+    }
+
+
+    [Serializable]
+    public struct Wrap
+    {
+        public readonly static Wrap Null = new Wrap();
+        public float Data;
+        public float T1;
+        public float T2;
+
+        public Wrap(float data, float t1, float t2)
         {
             Data = data;
             T1 = t1;
@@ -380,10 +483,10 @@ namespace  Battlehub.MeshDeformer2
             SplineRuntimeEditor.Created -= OnRuntimeEditorCreated;
             SplineRuntimeEditor.Destroyed -= OnRuntimeEditorDestroyed;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
-            if(SplineRuntimeEditor.Instance != null && SplineRuntimeEditor.Instance.SelectedSpline == this)
-            {
-                SplineRuntimeEditor.Instance.SelectedSpline = null;
-            }
+            //if(SplineRuntimeEditor.Instance != null && SplineRuntimeEditor.Instance.SelectedSpline == this)
+            //{
+            //    SplineRuntimeEditor.Instance.SelectedSpline = null;
+            //}
         }
 #else
         
@@ -532,13 +635,13 @@ namespace  Battlehub.MeshDeformer2
 
             m_isSelected = true;
 
-            if (SplineRuntimeEditor.Instance != null)
-            {
-                if(SplineRuntimeEditor.Instance.SelectedSpline != this)
-                {
-                    SplineRuntimeEditor.Instance.SelectedSpline = this;
-                }        
-            }
+            //if (SplineRuntimeEditor.Instance != null)
+            //{
+            //    if(SplineRuntimeEditor.Instance.SelectedSpline != this)
+            //    {
+            //        SplineRuntimeEditor.Instance.SelectedSpline = this;
+            //    }        
+            //}
         }
 
         public void Unselect()
@@ -560,13 +663,13 @@ namespace  Battlehub.MeshDeformer2
 
             m_isSelected = false;
 
-            if (SplineRuntimeEditor.Instance != null)
-            {
-                if(SplineRuntimeEditor.Instance.SelectedSpline == this)
-                {
-                    SplineRuntimeEditor.Instance.SelectedSpline = null;
-                }
-            }
+            //if (SplineRuntimeEditor.Instance != null)
+            //{
+            //    if(SplineRuntimeEditor.Instance.SelectedSpline == this)
+            //    {
+            //        SplineRuntimeEditor.Instance.SelectedSpline = null;
+            //    }
+            //}
         }
 
         public float EvalLength(int curveIndex)
@@ -1795,6 +1898,47 @@ namespace  Battlehub.MeshDeformer2
         }
 #endif
 
+        private static readonly Color SplineColor = Color.green;
+        private static float Smoothness = 5.0f;
+
+        public bool IsControlPointLocked(int index)
+        {
+            return false;
+        }
+
+        public virtual SplineControlPoint[] GetSplineControlPoints()
+        {
+            List<SplineControlPoint> ctrlPoints = new List<SplineControlPoint>(transform.childCount);
+            foreach (Transform child in transform)
+            {
+                SplineControlPoint ctrlPoint = child.GetComponent<SplineControlPoint>();
+                if (ctrlPoint != null)
+                {
+                    ctrlPoints.Add(ctrlPoint);
+                }
+            }
+
+            return ctrlPoints.ToArray();
+        }
+
+        private static Material m_splineMaterial;
+        private static void InitSplineMaterial()
+        {
+            Shader shader = Shader.Find("Battlehub/SplineEditor/Spline");
+            m_splineMaterial = new Material(shader);
+            m_splineMaterial.name = "SplineMaterial";
+            m_splineMaterial.color = SplineColor;
+            m_splineMaterial.SetInt("_ZTest", (int)CompareFunction.Always);
+
+            GLRenderer glRenderer = FindObjectOfType<GLRenderer>();
+            if (glRenderer == null)
+            {
+                GameObject go = new GameObject();
+                go.name = "GLRenderer";
+                go.AddComponent<GLRenderer>();
+            }
+        }
+
         public void Draw()
         {
             if (m_points.Length < 2)
@@ -1802,12 +1946,17 @@ namespace  Battlehub.MeshDeformer2
                 return;
             }
 
+            if (m_splineMaterial == null)
+            {
+                InitSplineMaterial();
+            }
+
             SplineRuntimeEditor runtimeEditor = SplineRuntimeEditor.Instance;
             if(runtimeEditor == null)
             {
                 return;
             }
-            runtimeEditor.SplineMaterial.SetPass(0);
+            m_splineMaterial.SetPass(0);
 
             GL.PushMatrix();
             GL.MultMatrix(transform.localToWorldMatrix);
@@ -1831,7 +1980,7 @@ namespace  Battlehub.MeshDeformer2
             }
             GL.End();
             GL.Begin(GL.LINES);
-            GL.Color(SplineRuntimeEditor.SplineColor);
+            GL.Color(SplineColor);
             p0 = m_points[0];
             for (int i = 1; i < m_points.Length; i += 3)
             {
@@ -1840,13 +1989,12 @@ namespace  Battlehub.MeshDeformer2
                 Vector3 p3 = m_points[i + 2];
 
                 float len = (p0 - p1).magnitude + (p1 - p2).magnitude + (p2 - p3).magnitude;
-                int count = Mathf.CeilToInt(runtimeEditor.Smoothness * len);
+                int count = Mathf.CeilToInt(Smoothness * len);
                 if(count <= 0)
                 {
                     count = 1;
                 }
                 
-
                 for (int j = 0; j < count; ++j)
                 {
                     float t = ((float)j) / count;

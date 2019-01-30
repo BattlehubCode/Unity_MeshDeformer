@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Battlehub.RTEditor;
+using System;
 using UnityEngine;
 
 namespace  Battlehub.MeshDeformer2
@@ -74,29 +75,45 @@ namespace  Battlehub.MeshDeformer2
                 if (!m_renderer)
                 {
                     m_renderer = gameObject.AddComponent<MeshRenderer>();
-                    MeshFilter filter = gameObject.AddComponent<MeshFilter>();
+                }
+
+                MeshFilter filter = GetComponent<MeshFilter>();
+                if (!filter)
+                {
+                    filter = gameObject.AddComponent<MeshFilter>();
+                }
+
+                if (!filter.sharedMesh)
+                {
                     filter.sharedMesh = runtimeEditor.ControlPointMesh;
                     UpdateMaterial();
+                }
+
+                if (!gameObject.GetComponent<ExposeToEditor>())
+                {
+                    gameObject.AddComponent<ExposeToEditor>();
                 }
             }
         }
 
-        private void DestroyRuntimeComponents()
+        public void DestroyRuntimeComponents()
         {
-            SplineRuntimeEditor runtimeEditor = SplineRuntimeEditor.Instance;
-            if (runtimeEditor != null)
+            MeshRenderer renderer = GetComponent<MeshRenderer>();
+            if (renderer)
             {
-                MeshRenderer renderer = GetComponent<MeshRenderer>();
-                if (renderer)
-                {
-                    DestroyImmediate(renderer);
-                }
+                DestroyImmediate(renderer);
+            }
 
-                MeshFilter filter = GetComponent<MeshFilter>();
-                if (filter)
-                {
-                    DestroyImmediate(filter);
-                }
+            MeshFilter filter = GetComponent<MeshFilter>();
+            if (filter)
+            {
+                DestroyImmediate(filter);
+            }
+
+            ExposeToEditor exposeToEditor = gameObject.GetComponent<ExposeToEditor>();
+            if (exposeToEditor)
+            {
+                DestroyImmediate(exposeToEditor);
             }
         }
 

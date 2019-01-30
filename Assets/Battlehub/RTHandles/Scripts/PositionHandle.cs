@@ -44,6 +44,7 @@ namespace Battlehub.RTHandles
 
         private bool HitQuad(Vector3 axis, Matrix4x4 matrix, float size)
         {
+            
             Ray ray = Camera.ScreenPointToRay(Input.mousePosition);
             Plane plane = new Plane(matrix.MultiplyVector(axis).normalized, matrix.MultiplyPoint(Vector3.zero));
 
@@ -88,7 +89,6 @@ namespace Battlehub.RTHandles
             m_inverse = m_matrix.inverse;
 
             Matrix4x4 matrix = Matrix4x4.TRS(transform.position, Rotation, new Vector3(scale, scale, scale));
-
             float s = 0.3f * scale;
             if(HitQuad(Vector3.up, m_matrix, s))
             {
@@ -134,7 +134,6 @@ namespace Battlehub.RTHandles
                 return GetPointOnDragPlane(Input.mousePosition, out m_prevPoint);
             }
 
-           
             SelectedAxis = RuntimeHandleAxis.None;
             return false;
         }

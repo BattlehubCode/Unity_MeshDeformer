@@ -5,7 +5,6 @@ namespace Battlehub.UIControls
     public class ListBoxItem : ItemContainer
     {
         private Toggle m_toggle;
-        
         public override bool IsSelected
         {
             get { return base.IsSelected; }
@@ -19,12 +18,11 @@ namespace Battlehub.UIControls
             }
         }
 
-        private void Awake()
+        protected override void AwakeOverride()
         {
             m_toggle = GetComponent<Toggle>();
             m_toggle.interactable = false;
             m_toggle.isOn = IsSelected;
         }
     }
-
 }

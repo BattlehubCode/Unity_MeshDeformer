@@ -4,6 +4,29 @@ using System.Collections.Generic;
 
 namespace Battlehub.Utils
 {
+    public class QuaternionAnimationInfo : AnimationInfo<object, Quaternion>
+    {
+        public QuaternionAnimationInfo(Quaternion from, Quaternion to, float duration, Func<float, float> easingFunction, AnimationCallback<object, Quaternion> callback, object target = null) : 
+            base(from, to, duration, easingFunction, callback, target) { }
+
+        protected override Quaternion Lerp(Quaternion from, Quaternion to, float t)
+        {
+            return Quaternion.Lerp(from, to, t);
+        }
+    }
+
+    public class Vector3SlerpAnimationInfo : AnimationInfo<object, Vector3>
+    {
+        public Vector3SlerpAnimationInfo(Vector3 from, Vector3 to, float duration, Func<float, float> easingFunction, AnimationCallback<object, Vector3> callback, object target = null) :
+            base(from, to, duration, easingFunction, callback, target)
+        { }
+
+        protected override Vector3 Lerp(Vector3 from, Vector3 to, float t)
+        {
+            return Vector3.Slerp(from, to, t);
+        }
+    }
+
     public class Vector3AnimationInfo : AnimationInfo<object, Vector3>
     {
         public Vector3AnimationInfo(Vector3 from, Vector3 to, float duration, Func<float, float> easingFunction, AnimationCallback<object, Vector3> callback, object target = null) : 
@@ -76,10 +99,22 @@ namespace Battlehub.Utils
                 {
                     m_t = 0;
                 }
-                bool completed = m_t >= m_duration;
-                float t = completed ? 1 : m_easingFunction(m_t / m_duration);
-                TValue tValue = Lerp(m_from, m_to, t);
-                m_callback(m_target, tValue, m_t, completed);
+
+                if(!float.IsNaN(m_t))
+                {
+                    bool completed = m_t >= m_duration;
+                    float t = completed ? 1 : m_easingFunction(m_t / m_duration);
+                    TValue tValue = Lerp(m_from, m_to, t);
+                    m_callback(m_target, tValue, m_t, completed);
+                }
+            }
+        }
+
+        public bool InProgress
+        {
+            get
+            {
+                return m_t > 0 && m_t < m_duration;
             }
         }
 
@@ -89,6 +124,11 @@ namespace Battlehub.Utils
         private AnimationCallback<TObj, TValue> m_callback;
         private Func<float, float> m_easingFunction;
         protected abstract TValue Lerp(TValue from, TValue to, float t);
+
+        public void Abort()
+        {
+            m_t = float.NaN;
+        }
 
         public AnimationInfo(TValue from, TValue to, float duration, Func<float, float> easingFunction, AnimationCallback<TObj, TValue> callback, TObj target)
         {
@@ -123,6 +163,13 @@ namespace Battlehub.Utils
             get;
             set;
         }
+
+        bool InProgress
+        {
+            get;
+        }
+
+        void Abort();
     }
 
     [ExecuteInEditMode]

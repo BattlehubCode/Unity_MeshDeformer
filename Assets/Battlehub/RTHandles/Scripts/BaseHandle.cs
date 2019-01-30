@@ -1,9 +1,84 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
+﻿using System;
+using UnityEngine;
 
 namespace Battlehub.RTHandles
 {
+    public enum RuntimeTool
+    {
+        None,
+        Move,
+        Rotate,
+        Scale,
+        View,
+    }
+
+    public enum RuntimePivotRotation
+    {
+        Local,
+        Global
+    }
+
+    public delegate void RuntimeToolChanged();
+    public delegate void RuntimePivotRotationChanged();
+    public static class RuntimeTools
+    {
+        public static event RuntimeToolChanged ToolChanged;
+        public static event RuntimePivotRotationChanged PivotRotationChanged;
+
+        private static RuntimeTool m_current;
+        private static RuntimePivotRotation m_pivotRotation;
+
+        public static bool IsLocked
+        {
+            get;
+            set;
+        }
+
+        public static bool IsDragDrop
+        {
+            get;
+            set;
+        }
+
+        public static bool IsSceneGizmoSelected
+        {
+            get;
+            set;
+        }
+
+        public static RuntimeTool Current
+        {
+            get { return m_current; }
+            set
+            {
+                if(m_current != value)
+                {
+                    m_current = value;
+                    if(ToolChanged != null)
+                    {
+                        ToolChanged();
+                    }
+                }
+            }
+        }
+
+        public static RuntimePivotRotation PivotRotation
+        {
+            get { return m_pivotRotation; }
+            set
+            {
+                if(m_pivotRotation != value)
+                {
+                    m_pivotRotation = value;
+                    if(PivotRotationChanged != null)
+                    {
+                        PivotRotationChanged();
+                    }
+                }
+            }
+        }
+    }
+
     public abstract class BaseHandle : MonoBehaviour, IGL
     {
         protected float EffectiveGridSize
@@ -15,7 +90,11 @@ namespace Battlehub.RTHandles
         public KeyCode SnapToGridKey = KeyCode.LeftControl;
         public Camera Camera;
         public float SelectionMargin = 10;
-        public Transform Target;
+        public Transform[] Targets;
+        public Transform Target
+        {
+            get { return Targets[0];}
+        }
         private static BaseHandle m_draggingTool;
 
         private RuntimeHandleAxis m_selectedAxis;
@@ -34,7 +113,15 @@ namespace Battlehub.RTHandles
 
         protected Quaternion Rotation
         {
-            get { return RuntimeTools.PivotRotation == RuntimePivotRotation.Local ? Target.transform.rotation : Quaternion.identity; }
+            get
+            {
+                if(Targets == null || Targets.Length <= 0 || Target == null)
+                {
+                    return Quaternion.identity;
+                }
+
+                return RuntimeTools.PivotRotation == RuntimePivotRotation.Local ? Target.rotation : Quaternion.identity;
+            }
         }
 
         protected RuntimeHandleAxis SelectedAxis
@@ -56,31 +143,29 @@ namespace Battlehub.RTHandles
 
         private void Start()
         {
+            if (Camera == null)
+            {
+                Camera = Camera.main;
+            }
+
             if (GLRenderer.Instance == null)
             {
                 GameObject glRenderer = new GameObject();
                 glRenderer.name = "GLRenderer";
-                glRenderer.AddComponent<GLRenderer>();
+                glRenderer.AddComponent<GLRenderer>();   
+            }
 
-                Camera[] cameras = Camera.allCameras;
-                for (int i = 0; i < cameras.Length; ++i)
+            if (Camera != null)
+            {
+                if(!Camera.GetComponent<GLCamera>())
                 {
-                    Camera cam = cameras[i];
-                    if (!cam.GetComponent<GLCamera>())
-                    {
-                        cam.gameObject.AddComponent<GLCamera>();
-                    }
-                }
+                    Camera.gameObject.AddComponent<GLCamera>();
+                }   
             }
 
-            if(Target == null)
+            if (Targets == null || Targets.Length == 0)
             {
-                Target = transform;
-            }
-
-            if (Camera == null)
-            {
-                Camera = Camera.main;
+                Targets = new[] { transform };
             }
 
             if (GLRenderer.Instance != null)
@@ -88,9 +173,9 @@ namespace Battlehub.RTHandles
                 GLRenderer.Instance.Add(this);
             }
 
-            if (Target != null && Target.position != transform.position)
+            if (Targets[0].position != transform.position)
             {
-                transform.position = Target.position;
+                transform.position = Targets[0].position;
             }
 
             StartOverride();
@@ -107,6 +192,13 @@ namespace Battlehub.RTHandles
             {
                 GLRenderer.Instance.Add(this);
             }
+
+            OnEnableOverride();
+        }
+
+        protected virtual void OnEnableOverride()
+        {
+
         }
 
         private void OnDisable()
@@ -115,6 +207,13 @@ namespace Battlehub.RTHandles
             {
                 GLRenderer.Instance.Remove(this);
             }
+
+            OnDisableOverride();
+        }
+
+        protected virtual void OnDisableOverride()
+        {
+
         }
 
         private void OnDestroy()
@@ -136,7 +235,7 @@ namespace Battlehub.RTHandles
         {
             if (Input.GetMouseButtonDown(0))
             {
-                if (RuntimeTools.Current != Tool && RuntimeTools.Current != RuntimeTool.None)
+                if (RuntimeTools.Current != Tool && RuntimeTools.Current != RuntimeTool.None || RuntimeTools.IsLocked)
                 {
                     return;
                 }
@@ -201,17 +300,21 @@ namespace Battlehub.RTHandles
 
         protected virtual void UpdateOverride()
         {
-            if (Target != null && Target.position != transform.position)
+            if (Targets != null && Targets.Length > 0 && Targets[0] != null && Targets[0].position != transform.position)
             {
                 if (IsDragging)
                 {
-                    Target.position = transform.position;
-                    Target.rotation = transform.rotation;
+                    Vector3 offset = transform.position - Targets[0].position;
+                    Targets[0].position = transform.position;
+                    for (int i = 1; i < Targets.Length; ++i)
+                    {
+                        Targets[i].position += offset;
+                    }
                 }
                 else
                 {
-                    transform.position = Target.position;
-                    transform.rotation = Target.rotation;
+                    transform.position = Targets[0].position;
+                    transform.rotation = Targets[0].rotation;
                 }
             }
         }
@@ -278,14 +381,6 @@ namespace Battlehub.RTHandles
         protected Plane GetDragPlane(Matrix4x4 matrix, Vector3 axis)
         {
             Plane plane = new Plane(matrix.MultiplyVector(axis).normalized, matrix.MultiplyPoint(Vector3.zero));
-
-            //Plane camPlane = GetDragPlane();
-
-            //if(Math.Abs(Vector3.Dot(camPlane.normal, plane.normal)) < 0.1f)
-            //{
-            //    return camPlane;
-            //}
-
             return plane;
 
         }
@@ -321,8 +416,6 @@ namespace Battlehub.RTHandles
             return new Vector2(-vector2.y, vector2.x);
         }
 
-
-
         void IGL.Draw()
         {
             DrawOverride();
@@ -332,5 +425,7 @@ namespace Battlehub.RTHandles
         {
 
         }
+
+       
     }
 }

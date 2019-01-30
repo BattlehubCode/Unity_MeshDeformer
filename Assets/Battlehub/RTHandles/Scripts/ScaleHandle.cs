@@ -11,7 +11,7 @@ namespace Battlehub.RTHandles
 
         private Vector3 m_roundedScale;
         private Vector3 m_scale;
-        private Vector3 m_refScale;
+        private Vector3[] m_refScales;
         private float m_screenScale;    
 
         public static ScaleHandle Current
@@ -89,7 +89,12 @@ namespace Battlehub.RTHandles
                 }
             }
 
-            m_refScale = Target.localScale;
+            m_refScales = new Vector3[Targets.Length];
+            for(int i = 0; i < m_refScales.Length; ++i)
+            {
+                Quaternion rotation = RuntimeTools.PivotRotation == RuntimePivotRotation.Global ? Targets[i].rotation : Quaternion.identity;
+                m_refScales[i] = rotation * Target.localScale;
+            }
             DragPlane = GetDragPlane();
             bool result = GetPointOnDragPlane(Input.mousePosition, out m_prevPoint);
             return result;
@@ -133,8 +138,14 @@ namespace Battlehub.RTHandles
                     m_roundedScale.y = Mathf.RoundToInt(m_roundedScale.y / EffectiveGridSize) * EffectiveGridSize;
                     m_roundedScale.z = Mathf.RoundToInt(m_roundedScale.z / EffectiveGridSize) * EffectiveGridSize;
                 }
+
+                for (int i = 0; i < m_refScales.Length; ++i)
+                {
+                    Quaternion rotation =  RuntimeTools.PivotRotation == RuntimePivotRotation.Global ? Targets[i].rotation : Quaternion.identity;
+                    
+                    Targets[i].localScale = Quaternion.Inverse(rotation) * Vector3.Scale(m_refScales[i], m_roundedScale);
+                }
                 
-                Target.localScale = Vector3.Scale(m_refScale, m_roundedScale);
                 m_prevPoint = point;
             }
         }
